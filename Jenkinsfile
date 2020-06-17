@@ -155,21 +155,23 @@ pipeline {
         }
       }
     }
-    stage('Deploy to staging') {
+    stage('DT Deploy Event') {
       when {
-        beforeAgent true
-        expression {
-          return env.BRANCH_NAME ==~ 'release/.*'
-        }
+          expression {
+          return env.BRANCH_NAME ==~ 'release/.*' || env.BRANCH_NAME ==~'master'
+          }
       }
       steps {
-        build job: "k8s-deploy-staging",
-          parameters: [
-            string(name: 'APP_NAME', value: "${env.APP_NAME}"),
-            string(name: 'TAG_STAGING', value: "${env.TAG_STAGING}"),
-            string(name: 'VERSION', value: "${env.VERSION}")
-          ]
+        container("curl") {
+          script {
+            def status = pushDynatraceDeploymentEvent (
+              tagRule : tagMatchRules,
+              customProperties : [
+                [key: 'Jenkins Build Number', value: "${env.BUILD_ID}"],
+                [key: 'Git commit', value: "${env.GIT_COMMIT}"]
+              ]
+            )
+          }
+        }
       }
     }
-  }
-}
