@@ -65,7 +65,7 @@ metadata:
   name: carts
   labels:
     app: carts
-  namespace: lab-dev
+  namespace: dev
 spec:
   ports:
   - name: http
